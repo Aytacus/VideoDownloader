@@ -1,6 +1,6 @@
-# Anime & Video Downloader Helper
+# VideoDownloader
 
-Anime & Video Downloader Helper is a Chromium-based browser extension (Manifest V3) designed to detect, download, and merge video, audio, and subtitle streams from web pages. It features an advanced stream downloader interface and integrates FFmpeg both in-browser (via WebAssembly) and as a local command fallback to handle complex stream merging.
+VideoDownloader is a Chromium-based browser extension (Manifest V3) designed to detect, download, and merge video, audio, and subtitle streams from web pages. It features an advanced stream downloader interface and integrates FFmpeg both in-browser (via WebAssembly) and as a local command fallback to handle complex stream merging.
 
 ## Key Features
 

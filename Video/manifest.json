@@ -19,7 +19,7 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "name": "Anime & Video Downloader Helper",
+  "name": "VideoDownloader",
   "version": "1.1.0",
   "description": "Sniffs and downloads videos (including HLS .m3u8 streams) from web pages with thumbnails and in-page notifications.",
   "permissions": [
