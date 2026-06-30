@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Downloader Helper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="logo-text">Video Downloader</span>
+      </div>
+      <button id="clear-btn" class="icon-btn" title="Clear list">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="app-tabs">
+      <button id="tab-videos" class="tab-link active">
+        <span>Videos</span>
+        <span id="video-count-badge" class="tab-badge hidden">0</span>
+      </button>
+      <button id="tab-subtitles" class="tab-link">
+        <span>Subtitles</span>
+        <span id="subtitle-count-badge" class="tab-badge hidden">0</span>
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="app-content">
+      <div id="no-videos" class="empty-state">
+        <div class="pulse-circle">
+          <svg class="searching-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+            <line x1="7" y1="2" x2="7" y2="22"></line>
+            <line x1="17" y1="2" x2="17" y2="22"></line>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <line x1="2" y1="7" x2="7" y2="7"></line>
+            <line x1="2" y1="17" x2="7" y2="17"></line>
+            <line x1="17" y1="17" x2="22" y2="17"></line>
+            <line x1="17" y1="7" x2="22" y2="7"></line>
+          </svg>
+        </div>
+        <h3>No media detected</h3>
+        <p>Start playing a video on the page, and we will capture it automatically.</p>
+      </div>
+
+      <div id="video-list" class="video-list hidden">
+        <!-- Video cards go here dynamically -->
+      </div>
+
+      <div id="subtitle-list" class="video-list hidden">
+        <!-- Subtitle cards go here dynamically -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span class="active-domain-label">Site:</span>
+      <span id="active-domain" class="active-domain-value">Detecting...</span>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

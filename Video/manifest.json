@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  },
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "ffmpeg-core.js",
+        "ffmpeg-core.wasm",
+        "814.ffmpeg.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "name": "Anime & Video Downloader Helper",
+  "version": "1.1.0",
+  "description": "Sniffs and downloads videos (including HLS .m3u8 streams) from web pages with thumbnails and in-page notifications.",
+  "permissions": [
+    "webRequest",
+    "downloads",
+    "activeTab",
+    "storage",
+    "declarativeNetRequest",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

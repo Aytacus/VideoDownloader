@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced HLS Stream Downloader</title>
+  <link rel="stylesheet" href="downloader.css">
+</head>
+<body>
+  <div class="main-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 7 16 12 23 17 23 7"></polyline>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+      </div>
+      <div class="title-area">
+        <h1 id="file-title">Detecting Stream...</h1>
+        <p id="stream-url">Parsing connection parameters...</p>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="setting-row" style="flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 16px;">
+        <label for="filename-input" class="setting-label" style="align-self: flex-start;">Save Filename:</label>
+        <input type="text" id="filename-input" class="setting-select" style="cursor: text; font-weight: normal; font-size: 13.5px;" placeholder="Video filename">
+      </div>
+      <div class="setting-row">
+        <label for="concurrency-select" class="setting-label">Download Channels (Threads):</label>
+        <select id="concurrency-select" class="setting-select">
+          <option value="2">2 (Concurrent / Multi-Download)</option>
+          <option value="3">3 (Standard Balanced)</option>
+          <option value="5" selected>5 (Single Fast - Recommended)</option>
+          <option value="8">8 (Turbo Mode - Single Fast)</option>
+          <option value="12">12 (Maximum Turbo - Server May Block)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Error Container -->
+    <div id="error-panel" class="error-container hidden">
+      <div class="error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="error-details">
+        <h3 id="error-title">Download Failed</h3>
+        <p id="error-desc">An error occurred while loading the video stream. Some servers prevent hotlinking or require page validation cookies.</p>
+      </div>
+    </div>
+
+    <!-- Quality Selection Panel (For HLS Master Playlist) -->
+    <div id="quality-panel" class="quality-panel hidden">
+      <h3 class="status-title">Select Video Resolution</h3>
+      <div id="quality-options" class="quality-options">
+        <!-- Dynamically populated options -->
+      </div>
+
+      <div id="audio-selection-wrapper" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+        <h3 class="status-title" style="margin-bottom: 10px;">Select Audio Track (Dual Audio)</h3>
+        <div id="audio-options" class="quality-options">
+          <!-- Dynamically populated options -->
+        </div>
+      </div>
+
+      <div id="subtitle-selection-wrapper" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+        <h3 class="status-title" style="margin-bottom: 10px;">Select Subtitles to Download</h3>
+        <div id="subtitle-options" class="quality-options">
+          <!-- Dynamically populated options -->
+        </div>
+      </div>
+
+      <button id="start-download-btn" class="btn btn-action" style="width: 100%; justify-content: center; margin-top: 12px; display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Start Download
+      </button>
+    </div>
+
+    <!-- Main Download Progress Panel -->
+    <div id="download-panel" class="status-panel hidden">
+      <div class="status-header">
+        <span class="status-title" id="download-status-txt">Downloading segments...</span>
+        <span class="status-badge downloading" id="download-badge">0%</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar-fill"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-segments">0 / 0</div>
+          <div class="stat-label">Segments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-speed">0.0 MB/s</div>
+          <div class="stat-label">Speed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-eta">--:--</div>
+          <div class="stat-label">ETA</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto Merge Success Panel -->
+    <div id="auto-merge-status-panel" class="status-panel hidden" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); margin-top: 16px;">
+      <div style="display: flex; gap: 12px;">
+        <div style="color: var(--success); flex-shrink: 0;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h3 style="font-size: 14.5px; font-weight: 600; color: #a7f3d0; margin-bottom: 4px;">Files Automatically Merged!</h3>
+          <p id="auto-merge-status-desc" style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+            Audio, video, and subtitle files have been successfully merged by the local helper server, and temporary source files have been cleaned up.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FFmpeg Merge Instruction Panel -->
+    <div id="merge-instructions-panel" class="status-panel hidden" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.15); margin-top: 16px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div style="color: var(--accent-secondary); flex-shrink: 0;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </div>
+        <div>
+          <h3 style="font-size: 14.5px; font-weight: 600; color: #a5f3fc; margin-bottom: 4px;">Merge Instructions (Dual Audio)</h3>
+          <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+            Merge the downloaded video and audio files with FFmpeg to obtain a single file with both audio and video.
+          </p>
+        </div>
+      </div>
+      <div style="position: relative; margin-top: 8px;">
+        <textarea id="ffmpeg-command-box" readonly style="width: 100%; height: 64px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; color: #67e8f9; font-family: monospace; font-size: 11.5px; padding: 10px; resize: none; outline: none;"></textarea>
+        <button id="copy-ffmpeg-btn" class="btn-select" style="position: absolute; right: 8px; bottom: 8px; padding: 4px 8px; font-size: 11px;">Copy</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <span style="font-size: 12px; color: var(--text-secondary);">Download script to automatically merge:</span>
+        <button id="download-bat-btn" class="btn-select" style="padding: 4px 10px; font-size: 11px;">Download merge_helper.bat</button>
+      </div>
+      <!-- Individual Download Links (for manual download/saving) -->
+      <div id="manual-downloads-container" style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Manual Download Backup (Save Files Individually):</span>
+        <div id="manual-downloads-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <!-- Dynamically populated buttons -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button id="cancel-btn" class="btn btn-cancel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        Cancel
+      </button>
+      <button id="restart-btn" class="btn btn-action hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+        </svg>
+        Try Again
+      </button>
+      <button id="save-btn" class="btn btn-action hidden" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Save File
+      </button>
+    </div>
+  </div>
+  <script src="ffmpeg.min.js"></script>
+  <script src="downloader.js"></script>
+</body>
+</html>
