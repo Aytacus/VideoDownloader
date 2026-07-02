@@ -4,7 +4,7 @@
     "value": "same-origin"
   },
   "cross_origin_embedder_policy": {
-    "value": "require-corp"
+    "value": "credentialless"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"

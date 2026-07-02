@@ -380,7 +380,7 @@ chrome.webRequest.onHeadersReceived.addListener(
     }
   },
   { urls: ["<all_urls>"] },
-  ["responseHeaders"]
+  ["responseHeaders", "extraHeaders"]
 );
 
 // Clear videos and subtitles for a tab when it closes or reloads

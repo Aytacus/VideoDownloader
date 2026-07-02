@@ -1148,42 +1148,43 @@ document.addEventListener("DOMContentLoaded", async () => {
       return trimmed.includes("WEBVTT") || trimmed.includes("-->") || trimmed.includes("[Script Info]") || trimmed.startsWith("<?xml") || trimmed.startsWith("<tt");
     }
 
-    // 1. Fetch backwards
-    const backwardTexts = [];
-    let currentNum = startNum - 1;
-    let consecutiveFailures = 0;
-    
-    while (currentNum >= 0 && consecutiveFailures < 1) {
-      if (isAborted) return null;
-      const url = getSegmentUrl(currentNum);
-      try {
-        if (!segmentFound) break;
-        currentNum--;
-      }
+    // Include the current segment
+    segmentTexts.push(currentSegmentText);
 
-      // Then check forward
-      currentNum = lastSeqNum + 1;
-      while (true) {
-        const segmentUrl = templateUrl.replace("{SEQ}", String(currentNum).padStart(padding, "0"));
-        const segText = await tryFetchSubtitleSegment(segmentUrl);
-        if (segText) {
-          segmentTexts.push(segText);
-          segmentFound = true;
-        } else {
-        const text = await fetchText(url);
+    // Fetch backwards
+    let currentNum = startNum - 1;
+    while (currentNum >= 0) {
+      if (isAborted) return null;
+      try {
+        const text = await fetchText(getSegmentUrl(currentNum));
         if (isValidSubtitle(text)) {
-          segmentTexts.push(text);
-          consecutiveFailures = 0;
+          segmentTexts.unshift(text);
         } else {
-          consecutiveFailures++;
+          break;
         }
       } catch (e) {
-        consecutiveFailures++;
+        break;
+      }
+      currentNum--;
+    }
+
+    // Fetch forwards
+    currentNum = startNum + 1;
+    while (true) {
+      if (isAborted) return null;
+      try {
+        const text = await fetchText(getSegmentUrl(currentNum));
+        if (isValidSubtitle(text)) {
+          segmentTexts.push(text);
+        } else {
+          break;
+        }
+      } catch (e) {
+        break;
       }
       currentNum++;
     }
 
-    // Downloaded all segments
     return segmentTexts;
   }
 
