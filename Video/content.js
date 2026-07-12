@@ -1,5 +1,9 @@
 // content.js - In-page video detection, frame capturing, and notification toasts
 
+if (typeof chrome !== "object" || !chrome.runtime || !chrome.runtime.id) {
+  throw new Error("Not running inside extension context");
+}
+
 // Listen to messages from background service worker
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "showDetectionToast") {
@@ -321,10 +325,12 @@ function startDynamicVideoScanner() {
   let currentUrl = window.location.href;
 
   setInterval(() => {
+    if (!chrome.runtime?.id) return;
+
     // Check for SPA navigation (URL change without page reload) - ONLY in the main frame!
     if (window === window.top && window.location.href !== currentUrl) {
       currentUrl = window.location.href;
-      chrome.runtime.sendMessage({ action: "clearVideos" });
+      try { chrome.runtime.sendMessage({ action: "clearVideos" }); } catch (e) {}
     }
 
     const videos = Array.from(document.querySelectorAll("video"));
@@ -342,24 +348,28 @@ function startDynamicVideoScanner() {
       if (url && !url.startsWith("blob:") && url.startsWith("http")) {
         const thumb = captureThumbnail(video);
         
-        chrome.runtime.sendMessage({
-          action: "addCapturedVideoDirectly",
-          url: url,
-          title: document.title,
-          thumbnail: thumb
-        });
+        try {
+          chrome.runtime.sendMessage({
+            action: "addCapturedVideoDirectly",
+            url: url,
+            title: document.title,
+            thumbnail: thumb
+          });
+        } catch (e) {}
       }
 
       // Scan for track tags inside this video
       const tracks = Array.from(video.querySelectorAll("track"));
       tracks.forEach((track) => {
         if (track.src && track.src.startsWith("http")) {
-          chrome.runtime.sendMessage({
-            action: "addCapturedSubtitleDirectly",
-            url: track.src,
-            label: track.label || track.srclang || "Subtitles",
-            language: track.srclang || ""
-          });
+          try {
+            chrome.runtime.sendMessage({
+              action: "addCapturedSubtitleDirectly",
+              url: track.src,
+              label: track.label || track.srclang || "Subtitles",
+              language: track.srclang || ""
+            });
+          } catch (e) {}
         }
       });
     });
